@@ -2,8 +2,24 @@
 <head>
     <title></title>
 </head>
-<body>
-<canvas></canvas>
+<body style="text-align: center;">
+<canvas id="myCanvas"  width="1000" height="500">
+您的浏览器不支持canvas!
+</canvas>
+<script type="text/javascript" src="flatsystem.js"></script>
 <script type="text/javascript" src="main.js"></script>
+<script type="text/javascript">
+var canvas=document.getElementById('myCanvas');
+var ctx = canvas.getContext('2d');
+var flat = new FlatSystem( ctx, 1000,500 );    
+flat.setProportion(0.01);
+flat.setCalibration(50);
+flat.onlyQuadrant(1);
+flat.init();
+flat.printPoint(1,2,10,10);
+flat.printPoint(2,2,10,10);
+flat.printPoint(2,1,10,10);
+flat.build();
+</script>
 </body>
 </html>
