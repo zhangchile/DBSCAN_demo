@@ -85,14 +85,10 @@ var CalNEPS = function(point) {
         var p = point_set[i];
         if(p.x == point.x && p.y == point.y) continue;
         var dist = CalDistance(point, p);
-        // console.log(dist);
         if( dist <= _EPS ) {
-            // console.log("add a point to ("+point.x+","+point.y+")");
-            // console.log(p);
             UpdatePoint(point, "N_EPS", p);
         }
     }
-    // console.log(point.N_EPS);
     return point;
 }
 
@@ -171,8 +167,7 @@ var DBSCAN = function() {
                 var N_P = p.N_EPS[j];
                 if(N_P.IN_SET == true) continue;
                 N_P = CalNEPS(N_P);
-                // console.log(N_P.name);
-                // if(N_P.name == "D") console.log(N_P.N_EPS);
+
                 if(N_P.N_EPS.length >= _MinPts - 1) {//领域中的点也是核心对象，则并入到这个簇中
                     UpdatePoint(N_P, "type", _CORE);//设置该点为核心对象
                     AddPoint(N_P, new_set);//把核心点加入簇中
@@ -181,7 +176,7 @@ var DBSCAN = function() {
                         var N_N_P = N_P.N_EPS[k];
                         if(N_N_P.IN_SET == true) continue;//该点已经在簇中
                         UpdatePoint(N_N_P, "type", _BORDER);//设置该点为边界
-                        AddPoint(N_N_P, new_set);//把核心点加入簇中
+                        AddPoint(N_N_P, new_set);//把该点加入簇中
                         UpdatePoint(N_N_P, "IN_SET", true);
                     };
                 } else {
