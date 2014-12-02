@@ -9,21 +9,32 @@
 <canvas id="myCanvas"  width="950" height="500" style="float:left;cursor:pointer;">
 您的浏览器不支持canvas!
 </canvas>
-<p><label style="margin-right: 24px;">Eps:</label><input placeholder="输入领域半径" value="1" name="Eps" id="Eps"></p>
-<p><label>MinPts:</label><input  placeholder="输入领域半径内的对象数" value="3" name="MinPts" id="MinPts"></p>
+<p><label style="margin-right: 24px;">Eps:</label><input type="text" placeholder="输入领域半径" value="1" name="Eps" id="Eps"></p>
+<p><label>MinPts:</label><input  type="text" placeholder="输入领域半径内的对象数" value="3" name="MinPts" id="MinPts"></p>
+<p><label>画出圆域:</label><input type="checkbox" checked name="drawcircle" id="drawcircle"></p>
 </div>
 <div id="InfoBox" class="infobox" style="position:absolute;width:70;height:50px;background:#eee; display:none;" ></div>
-<div id="xy"></div>
+<div id="xy" class="xy">X:0, Y:0</div>
+<!-- <div><input id="cal" type="button" value="计算"></div> -->
+<div id="result"></div>
+<div id="showcircle" class="showcircle" style=""></div>
 <script type="text/javascript" src="flatsystem.js"></script>
 <script type="text/javascript" src="main.js"></script>
 <script type="text/javascript">
 var _BodyX = 0;
 var _BodyY = 0;  
 var Body = document.querySelector("body");
+var _DRAWCIRCLE = true;
 
 var InfoBox = document.getElementById("InfoBox");
 var Eps = document.getElementById("Eps");
 var MinPts = document.getElementById("MinPts");
+var drawcircle = document.getElementById("drawcircle");
+var showcircle = document.getElementById("showcircle");
+
+drawcircle.onchange = function() {
+    _DRAWCIRCLE = this.checked;
+}
 
 Eps.onchange = function() {
     _EPS = this.value;
@@ -51,17 +62,21 @@ flat.build();
 canvas.onclick = function(e) {
     rx = flat.getFlatX(e.offsetX);
     ry = flat.getFlatY(e.offsetY);
-    // console.log("x:"+rx+" y:"+ry);
+
     flat.printPoint(rx,ry,5,5);
-    CreatePoint(rx,ry);
+    var p0 = CreatePoint(rx,ry);
+    flat.fillText(p0.name, flat.getFlatX(e.offsetX+10), flat.getFlatY(e.offsetY-10));
+    if(_DRAWCIRCLE) {
         ctx.beginPath();
         ctx.arc(e.offsetX,e.offsetY,flat.getx(_EPS-1),0,Math.PI*2,1);
         ctx.closePath();
         ctx.strokeStyle = '#ccc';
         ctx.lineWidth = 1;
-        ctx.stroke();
+        ctx.stroke(); 
+    }
     DBSCAN();
     PrintSets(sets);
+    ShowResult(sets);
     ClearSet();
 }
 
@@ -69,18 +84,26 @@ canvas.onmousemove = function(e) {
     rx = flat.getFlatX(e.offsetX);
     ry = flat.getFlatY(e.offsetY);
     // console.log("x:"+rx+" y:"+ry);
-    document.getElementById("xy").innerHTML = "x:"+rx+", y:"+ry;
+    document.getElementById("xy").innerHTML = "X:"+rx+", Y:"+ry;
     var hit = InPointSet(rx,ry);
     if(hit) {
-        // console.log(hit);
+
         var hitx = hit.x;
         var hity = hit.y;
         InfoBox.style.top = _BodyY;
         InfoBox.style.left = _BodyX;
         InfoBox.style.display="block";
         InfoBox.innerHTML = "x="+hitx+", y="+hity;
+
+        // var R = flat.getx(_EPS);
+        // showcircle.style.width = R;
+        // showcircle.style.height = R;
+        // showcircle.style.top = _BodyY + 16*_EPS;
+        // showcircle.style.left = _BodyX - R/2 +8*_EPS;
+        // showcircle.style.display = "block";
     } else {
-        InfoBox.style.display="none";
+        InfoBox.style.display = "none";
+        // showcircle.style.display = "none";
     }
 }
 
@@ -96,6 +119,33 @@ function InPointSet(x,y) {
     return hit;
 }
 
+function ShowResult(set) {
+    var rs = document.getElementById("result");
+    var str = "";
+    if(set instanceof Array) {
+        for(var i = 0, n = set.length; i < n; i++) {
+            s = set[i];
+            str += "<p>簇"+i+":";
+            if(s.points instanceof Array) {
+                for(var j = 0, m = s.points.length; j < m; j++) {
+                    str += s.points[j].name+",";
+                }
+                str += "</p>";                
+            }
+        }
+    } else {
+
+    }
+    rs.innerHTML = str;
+}
+
+// var cal = document.getElementById("cal");
+// cal.onclick = function() {
+//     DBSCAN();
+//     PrintSets(sets);
+//     ShowResult(sets);
+//     ClearSet();
+// }
 </script>
 </body>
 </html>
