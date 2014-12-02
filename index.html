@@ -1,25 +1,101 @@
 <html>
 <head>
     <title>DBSCAN算法</title>
+    <link rel="stylesheet" type="text/css" href="index.css">
 </head>
-<body style="text-align: center;">
-<canvas id="myCanvas"  width="1000" height="500">
+<body style="">
+<h1 style="text-align: center;">数据挖掘-DBSACN算法演示</h1>
+<div style="">
+<canvas id="myCanvas"  width="950" height="500" style="float:left;cursor:pointer;">
 您的浏览器不支持canvas!
 </canvas>
+<p><label style="margin-right: 24px;">Eps:</label><input placeholder="输入领域半径" value="1" name="Eps" id="Eps"></p>
+<p><label>MinPts:</label><input  placeholder="输入领域半径内的对象数" value="3" name="MinPts" id="MinPts"></p>
+</div>
+<div id="InfoBox" class="infobox" style="position:absolute;width:70;height:50px;background:#eee; display:none;" ></div>
+<div id="xy"></div>
 <script type="text/javascript" src="flatsystem.js"></script>
 <script type="text/javascript" src="main.js"></script>
 <script type="text/javascript">
-var canvas=document.getElementById('myCanvas');
+var _BodyX = 0;
+var _BodyY = 0;  
+var Body = document.querySelector("body");
+
+var InfoBox = document.getElementById("InfoBox");
+var Eps = document.getElementById("Eps");
+var MinPts = document.getElementById("MinPts");
+
+Eps.onchange = function() {
+    _EPS = this.value;
+}
+
+MinPts.onchange = function() {
+    _MinPts = this.value;
+}
+
+Body.onmousemove = function(e) {
+    // console.log("x:"+e.offsetX+" y:"+e.offsetY);
+    _BodyX = e.offsetX;
+    _BodyY = e.offsetY;
+}
+
+var canvas = document.getElementById('myCanvas');
 var ctx = canvas.getContext('2d');
-var flat = new FlatSystem( ctx, 1000,500 );    
-flat.setProportion(0.01);
+var flat = new FlatSystem( ctx, 930,500 );    
+flat.setProportion(0.02);
 flat.setCalibration(50);
 flat.onlyQuadrant(1);
 flat.init();
-flat.printPoint(1,2,10,10);
-flat.printPoint(2,2,10,10);
-flat.printPoint(2,1,10,10);
 flat.build();
+
+canvas.onclick = function(e) {
+    rx = flat.getFlatX(e.offsetX);
+    ry = flat.getFlatY(e.offsetY);
+    // console.log("x:"+rx+" y:"+ry);
+    flat.printPoint(rx,ry,5,5);
+    CreatePoint(rx,ry);
+        ctx.beginPath();
+        ctx.arc(e.offsetX,e.offsetY,flat.getx(_EPS-1),0,Math.PI*2,1);
+        ctx.closePath();
+        ctx.strokeStyle = '#ccc';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    DBSCAN();
+    PrintSets(sets);
+    ClearSet();
+}
+
+canvas.onmousemove = function(e) {
+    rx = flat.getFlatX(e.offsetX);
+    ry = flat.getFlatY(e.offsetY);
+    // console.log("x:"+rx+" y:"+ry);
+    document.getElementById("xy").innerHTML = "x:"+rx+", y:"+ry;
+    var hit = InPointSet(rx,ry);
+    if(hit) {
+        // console.log(hit);
+        var hitx = hit.x;
+        var hity = hit.y;
+        InfoBox.style.top = _BodyY;
+        InfoBox.style.left = _BodyX;
+        InfoBox.style.display="block";
+        InfoBox.innerHTML = "x="+hitx+", y="+hity;
+    } else {
+        InfoBox.style.display="none";
+    }
+}
+
+function InPointSet(x,y) {
+    var hit = '';
+    for (var i = 0, n = point_set.length; i < n; i++) {
+        var p = point_set[i];
+        if(Math.abs(p.x - x) < 0.05 && Math.abs(p.y - y) < 0.05) {
+            hit = p;
+            break;
+        }
+    }
+    return hit;
+}
+
 </script>
 </body>
 </html>

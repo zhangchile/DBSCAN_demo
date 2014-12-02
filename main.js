@@ -1,5 +1,5 @@
 //全局配置
-var _EPS = 3;//领域半径
+var _EPS = 1;//领域半径
 var _MinPts = 2;//最小领域集合数
 
 var _CORE = 1; //核心点
@@ -37,6 +37,13 @@ var CreateSet = function(name) {
     }
     sets.push(set);
     return set;
+}
+
+/**
+*   创建一个簇，并加入到簇集中
+*/
+var ClearSet = function() {
+    sets = [];
 }
 
 /**
@@ -176,20 +183,20 @@ var DBSCAN = function() {
     }
 }
 
-CreatePoint(1,2);
-CreatePoint(2,2);
-CreatePoint(1,1);
+// CreatePoint(1,2);
+// CreatePoint(2,2);
+// CreatePoint(1,1);
 
-// PrintPoint(point_set);
-CreatePoint(5,6);
-CreatePoint(5,5);
-CreatePoint(5,7);
+// // PrintPoint(point_set);
+// CreatePoint(5,6);
+// CreatePoint(5,5);
+// CreatePoint(5,7);
 
-CreatePoint(9,9);
-CreatePoint(10,10);
-CreatePoint(10,11);
-CreatePoint(13,10);
+// CreatePoint(9,9);
+// CreatePoint(10,10);
+// CreatePoint(10,11);
+// CreatePoint(13,10);
 
-DBSCAN();
-PrintSets(sets);
+// DBSCAN();
+// PrintSets(sets);
 // PrintPoint(point_set);

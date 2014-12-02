@@ -144,7 +144,7 @@ FlatSystem.prototype = {
 
         this.drawLine(this.jx, this.height, this.jx, 0);// y
         this.drawLine(0, this.jy, this.width,  this.jy);// x
-        this.setFillColor('#d8d8d8');
+        this.setFillColor('#000');
         this.fillText("O", this.jx+5 , this.jy+10);//原点坐标 0
         this.buildCoordinate();// +x height/2
         
@@ -176,7 +176,7 @@ FlatSystem.prototype = {
         var sy=0; 
 
         this.context.textBaseline = "middle";
-        this.setFillColor('#d8d8d8');
+        this.setFillColor('#000');
         for(var i=1; i<=len;i++){//注释过的代码都是适当优化过的 其实等于没优化
 
             j = String(fixed(calibration*i));
@@ -228,5 +228,18 @@ FlatSystem.prototype = {
     */
     gety:function(y){
         return parseInt(this.jy-(y/this.proportion));
+    },
+
+    /**
+        获取坐标轴x坐标
+    */
+    getFlatX: function(x) {
+        return (flat.proportion * (x - flat.jx)).toFixed(2);
+    },
+    /**
+        获取坐标轴x坐标
+    */
+    getFlatY: function(y) {
+        return (flat.proportion * (flat.jy - y)).toFixed(2);
     }
 };
