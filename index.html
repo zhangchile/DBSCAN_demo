@@ -11,14 +11,18 @@
 您的浏览器不支持canvas!
 </canvas>
 <p><label style="margin-right: 24px;">Eps:</label><input type="text" placeholder="输入领域半径" value="1" name="Eps" id="Eps"></p>
-<p><label>MinPts:</label><input  type="text" placeholder="输入领域半径内的对象数" value="3" name="MinPts" id="MinPts"></p>
+<p><label>MinPts:</label><input  type="text" placeholder="输入领域半径内的对象数" value="4" name="MinPts" id="MinPts"></p>
 <p><label>画出圆域:</label><input type="checkbox" checked name="drawcircle" id="drawcircle"></p>
 </div>
 <div id="InfoBox" class="infobox" style="position:absolute;width:70;height:50px;background:#eee; display:none;" ></div>
 <div id="xy" class="xy">X:0, Y:0</div>
+<div id="tags" class="tags">
+<p><span class="core"></span>核心点</p>
+<p><span class="border"></span>边界点</p>
+<p><span class="noise"></span>噪声点</p>
+</div>
 <!-- <div><input id="cal" type="button" value="计算"></div> -->
 <div id="result"></div>
-<div id="showcircle" class="showcircle" style=""></div>
 <script type="text/javascript" src="flatsystem.js"></script>
 <script type="text/javascript" src="main.js"></script>
 <script type="text/javascript" src="start.js"></script>

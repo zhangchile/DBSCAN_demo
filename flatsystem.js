@@ -234,12 +234,12 @@ FlatSystem.prototype = {
         获取坐标轴x坐标
     */
     getFlatX: function(x) {
-        return (flat.proportion * (x - flat.jx)).toFixed(2);
+        return (this.proportion * (x - this.jx)).toFixed(2);
     },
     /**
         获取坐标轴x坐标
     */
     getFlatY: function(y) {
-        return (flat.proportion * (flat.jy - y)).toFixed(2);
+        return (this.proportion * (this.jy - y)).toFixed(2);
     }
 };

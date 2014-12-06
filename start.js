@@ -7,10 +7,13 @@ var InfoBox = document.getElementById("InfoBox");
 var Eps = document.getElementById("Eps");
 var MinPts = document.getElementById("MinPts");
 var drawcircle = document.getElementById("drawcircle");
-var showcircle = document.getElementById("showcircle");
+var Canvas = document.getElementById('myCanvas');
+var CTX = Canvas.getContext('2d');
+var FLAT = new FlatSystem( CTX, 930,500 );    
 
 drawcircle.onchange = function() {
     _DRAWCIRCLE = this.checked;
+    RePaint(false);
 }
 
 Eps.onchange = function() {
@@ -22,45 +25,104 @@ MinPts.onchange = function() {
 }
 
 Body.onmousemove = function(e) {
-    // console.log("x:"+e.offsetX+" y:"+e.offsetY);
     _BodyX = e.offsetX;
     _BodyY = e.offsetY;
 }
 
-var canvas = document.getElementById('myCanvas');
-var ctx = canvas.getContext('2d');
-var flat = new FlatSystem( ctx, 930,500 );    
-flat.setProportion(0.02);
-flat.setCalibration(50);
-flat.onlyQuadrant(1);
-flat.init();
-flat.build();
-
-canvas.onclick = function(e) {
-    rx = flat.getFlatX(e.offsetX);
-    ry = flat.getFlatY(e.offsetY);
-
-    flat.printPoint(rx,ry,5,5);
+/**
+*    构建坐标系
+*/
+function Start() {
+    //构建坐标系
+    FLAT.setProportion(0.02);
+    FLAT.setCalibration(50);
+    FLAT.onlyQuadrant(1);
+    FLAT.init();
+    FLAT.build();
+}
+/**
+* 注册鼠标事件
+*/
+Canvas.onclick = function(e) {
+    rx = FLAT.getFlatX(e.offsetX);
+    ry = FLAT.getFlatY(e.offsetY);
+    FLAT.printPoint(rx,ry,5,5);
     var p0 = CreatePoint(rx,ry);
-    flat.fillText(p0.name, flat.getFlatX(e.offsetX+10), flat.getFlatY(e.offsetY-10));
+    FLAT.fillText(p0.name, FLAT.getFlatX(e.offsetX+10), FLAT.getFlatY(e.offsetY-10));
     if(_DRAWCIRCLE) {
-        ctx.beginPath();
-        ctx.arc(e.offsetX,e.offsetY,flat.getx(_EPS-1),0,Math.PI*2,1);
-        ctx.closePath();
-        ctx.strokeStyle = '#ccc';
-        ctx.lineWidth = 1;
-        ctx.stroke(); 
+        CTX.beginPath();
+        CTX.arc(e.offsetX,e.offsetY,FLAT.getx(_EPS-1),0,Math.PI*2,1);
+        CTX.closePath();
+        CTX.strokeStyle = '#ccc';
+        CTX.lineWidth = 1;
+        CTX.stroke(); 
     }
+    ClearSet();
     DBSCAN();
     PrintSets(sets);
     ShowResult(sets);
-    ClearSet();
+    RePaint(false);
 }
 
-canvas.onmousemove = function(e) {
-    rx = flat.getFlatX(e.offsetX);
-    ry = flat.getFlatY(e.offsetY);
-    // console.log("x:"+rx+" y:"+ry);
+/**
+*    重绘
+*/
+function RePaint(hit) {
+    FLAT.clear();
+    Start();
+    for (var i = point_set.length - 1; i >= 0; i--) {
+        var p = point_set[i];
+        var showcircle = false;
+        if (hit != false)
+        if ( p.x == hit.x && p.y == hit.y) {
+            showcircle = true;
+        }
+        if (p.type == 1) {//核心点
+            FLAT.setFillColor("red");//设置
+            FLAT.printPoint(p.x,p.y,5,5);
+            FLAT.fillText(p.name, FLAT.getFlatX(FLAT.getx(p.x)+10), FLAT.getFlatY(FLAT.gety(p.y)-10));
+            FLAT.setFillColor("#000");//恢复黑色
+            if(_DRAWCIRCLE || showcircle) {
+                CTX.beginPath();
+                CTX.arc(FLAT.getx(p.x), FLAT.gety(p.y),FLAT.getx(_EPS-1),0,Math.PI*2,1);
+                CTX.closePath();
+                CTX.strokeStyle = '#ccc';
+                CTX.lineWidth = 1;
+                CTX.stroke(); 
+            }        
+        } else if (p.type == 3){//边界点
+            FLAT.setFillColor("blue");//设为蓝色
+            FLAT.printPoint(p.x,p.y,5,5);
+            FLAT.fillText(p.name, FLAT.getFlatX(FLAT.getx(p.x)+10), FLAT.getFlatY(FLAT.gety(p.y)-10));
+            if(_DRAWCIRCLE || showcircle) {
+                CTX.beginPath();
+                CTX.arc(FLAT.getx(p.x), FLAT.gety(p.y),FLAT.getx(_EPS-1),0,Math.PI*2,1);
+                CTX.closePath();
+                CTX.strokeStyle = '#ccc';
+                CTX.lineWidth = 1;
+                CTX.stroke(); 
+            }        
+        } else {
+            FLAT.setFillColor("#000");//恢复黑色
+            FLAT.printPoint(p.x,p.y,5,5);
+            FLAT.fillText(p.name, FLAT.getFlatX(FLAT.getx(p.x)+10), FLAT.getFlatY(FLAT.gety(p.y)-10));
+            if (_DRAWCIRCLE || showcircle) {
+                CTX.beginPath();
+                CTX.arc(FLAT.getx(p.x), FLAT.gety(p.y),FLAT.getx(_EPS-1),0,Math.PI*2,1);
+                CTX.closePath();
+                CTX.strokeStyle = '#ccc';
+                CTX.lineWidth = 1;
+                CTX.stroke(); 
+            }        
+        }
+    };
+   
+}
+
+
+Canvas.onmousemove = function(e) {
+    rx = FLAT.getFlatX(e.offsetX);
+    ry = FLAT.getFlatY(e.offsetY);
     document.getElementById("xy").innerHTML = "X:"+rx+", Y:"+ry;
     var hit = InPointSet(rx,ry);
     if(hit) {
@@ -71,19 +133,16 @@ canvas.onmousemove = function(e) {
         InfoBox.style.left = _BodyX;
         InfoBox.style.display="block";
         InfoBox.innerHTML = "x="+hitx+", y="+hity;
-
-        // var R = flat.getx(_EPS);
-        // showcircle.style.width = R;
-        // showcircle.style.height = R;
-        // showcircle.style.top = _BodyY + 16*_EPS;
-        // showcircle.style.left = _BodyX - R/2 +8*_EPS;
-        // showcircle.style.display = "block";
+        RePaint(hit);
     } else {
         InfoBox.style.display = "none";
-        // showcircle.style.display = "none";
+        RePaint(false);
     }
 }
 
+/**
+*    判断坐标是否在点集
+*/
 function InPointSet(x,y) {
     var hit = '';
     for (var i = 0, n = point_set.length; i < n; i++) {
@@ -96,6 +155,9 @@ function InPointSet(x,y) {
     return hit;
 }
 
+/**
+*    打印结果
+*/
 function ShowResult(set) {
     var rs = document.getElementById("result");
     var str = "";
@@ -116,10 +178,12 @@ function ShowResult(set) {
     rs.innerHTML = str;
 }
 
+Start();
 // var cal = document.getElementById("cal");
 // cal.onclick = function() {
+//     ClearSet();
 //     DBSCAN();
 //     PrintSets(sets);
 //     ShowResult(sets);
-//     ClearSet();
+//     RePaint(false);
 // }

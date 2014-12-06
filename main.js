@@ -1,6 +1,6 @@
 //全局配置
 var _EPS = 1;//领域半径
-var _MinPts = 3;//最小领域集合数
+var _MinPts = 4;//最小领域集合数
 
 var _CORE = 1; //核心点
 var _NOISE = 2;//噪声点
@@ -11,6 +11,7 @@ var _CHARCODE = 65;
 
 var point_set = [];//点集
 var sets = [];//簇集
+var _newset;
 
 /**
 *   创建一个点，并加入到点集中
@@ -23,7 +24,8 @@ var CreatePoint = function(x, y) {
         name:String.fromCharCode(_CHARCODE%65 + 65),
         type:_NOISE,
         N_EPS: [],
-        IN_SET: false
+        IN_SET: false,
+        SETNAME: false
     }
     point_set.push(point);//加入点集
     _CHARCODE++;
@@ -49,13 +51,14 @@ var CreateSet = function(name) {
 var ClearSet = function() {
     sets = [];
     for(var i = 0, n = point_set.length; i < n; i++) {
-        s = point_set[i];
-        s.IN_SET = false;
+        point_set[i].IN_SET = false;
+        point_set[i].SETNAME = false;
+        point_set[i].N_EPS = [];
     }
 }
 
 /**
-*   更新点的属性
+*   重置点的属性
 */
 var UpdatePoint = function(point, attr, value) {
     // console.log(point);
@@ -64,7 +67,9 @@ var UpdatePoint = function(point, attr, value) {
     } else if(attr == 'N_EPS'){
         point.N_EPS.push(value);
     } else if(attr == 'IN_SET') {
-        point.IN_SET = value
+        point.IN_SET = value;
+    } else if(attr == "SETNAME") {
+        point.SETNAME = value;
     }
 
 }
@@ -73,7 +78,17 @@ var UpdatePoint = function(point, attr, value) {
 *   添加一个点到簇中
 */
 var AddPoint = function(point, set) {
-    set.points.push(point);
+    if(set instanceof Object) {
+        set.points.push(point);
+    } else {
+        console.log(point.name);
+        for (var i = sets.length - 1; i >= 0; i--) {
+            var s = sets[i];
+            if(s.name == set) {
+                s.points.push(point);
+            }
+        };
+    }
 }
 
 /**
@@ -111,10 +126,10 @@ var PrintPoint = function(point) {
     if(point instanceof Array) {
         for(var i = 0, n = point.length; i < n; i++) {
             p = point[i];
-            console.log("name:"+p.name+",x: " + p.x + ", y:" + p.y + ", type:"+ p.type + ", IN_SET:" + p.IN_SET);
+            console.log("name:"+p.name+",x: " + p.x + ", y:" + p.y + ", type:"+ p.type + ", SETNAME:" + p.SETNAME);
         }
     } else {
-        console.log("name:"+p.name+",x: " + point.x + ", y:" + point.y + ", type:"+ p.type + ", IN_SET:" + p.IN_SET);
+        console.log("name:"+p.name+",x: " + point.x + ", y:" + point.y + ", type:"+ p.type + ", SETNAME:" + p.SETNAME);
     }
 }
 
@@ -160,55 +175,60 @@ var DBSCAN = function() {
             var name = getName();//用时间戳来定义簇名
             var new_set = CreateSet(name);//新建个簇
 
-            UpdatePoint(p, "type", _CORE);//设置该点为核心对象
+            // UpdatePoint(p, "type", _CORE);//设置该点为核心对象
             AddPoint(p, new_set);//把核心点加入簇中
             UpdatePoint(p, "IN_SET", true);
+            UpdatePoint(p,"SETNAME",name);
             for (var j = p.N_EPS.length - 1; j >= 0; j--) {//遍历改该点的领域集
                 var N_P = p.N_EPS[j];
-                if(N_P.IN_SET == true) continue;
+                if(N_P.IN_SET == true) {
+                    continue;
+                }
                 N_P = CalNEPS(N_P);
 
                 if(N_P.N_EPS.length >= _MinPts - 1) {//领域中的点也是核心对象，则并入到这个簇中
-                    UpdatePoint(N_P, "type", _CORE);//设置该点为核心对象
+                    // UpdatePoint(N_P, "type", _CORE);//设置该点为核心对象
                     AddPoint(N_P, new_set);//把核心点加入簇中
                     UpdatePoint(N_P, "IN_SET", true);
+                    UpdatePoint(N_P,"SETNAME",name);
                     for (var k = N_P.N_EPS.length - 1; k >= 0; k--) {
                         var N_N_P = N_P.N_EPS[k];
                         if(N_N_P.IN_SET == true) continue;//该点已经在簇中
                         UpdatePoint(N_N_P, "type", _BORDER);//设置该点为边界
                         AddPoint(N_N_P, new_set);//把该点加入簇中
                         UpdatePoint(N_N_P, "IN_SET", true);
+                        UpdatePoint(N_N_P,"SETNAME",name);
                     };
                 } else {
                     UpdatePoint(N_P, "type", _BORDER);//设置该点为边界对象
                     AddPoint(N_P, new_set);//把点加入簇中
                     UpdatePoint(N_P, "IN_SET", true);
+                    UpdatePoint(N_P,"SETNAME", name);
                 }
             };
         } else {
             p.N_EPS = [];
-            UpdatePoint(p, "type", _NOISE_BORDER);//设置该点为边界对象
+            UpdatePoint(p, "type", _NOISE_BORDER);//设置该点为边界或噪声对象
         }
     }
+    //更新所有点的属性
+    for (var i = point_set.length - 1; i >= 0; i--) {
+        var p = point_set[i];
+        var num = 0;
+        for (var j = 0, n = point_set.length; j < n; j++) {
+            var point = point_set[j];
+            if(p.x == point.x && p.y == point.y) continue;
+            var dist = CalDistance(point, p);
+            if( dist <= _EPS ) {
+               num++;
+            }
+        }
+        if (num >= _MinPts - 1) {
+            p.type = _CORE;//核心点
+        } else {
+            if (p.type == _NOISE_BORDER) {
+                p.type = _NOISE;
+            };
+        }
+    };
 }
-
-// CreatePoint(2,4);//C
-// CreatePoint(1,2);//A
-// CreatePoint(4,3);//E
-// CreatePoint(2,1);//B
-// CreatePoint(3,3);//D
-
-// // PrintPoint(point_set);
-// CreatePoint(5,6);
-// CreatePoint(5,5);
-// CreatePoint(5,7);
-
-// CreatePoint(9,9);
-// CreatePoint(10,10);
-// CreatePoint(10,11);
-// CreatePoint(13,10);
-
-// DBSCAN();
-// PrintSets(sets);
-// console.log(sets);
-// PrintPoint(point_set);

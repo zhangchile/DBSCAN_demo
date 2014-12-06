@@ -30,3 +30,44 @@
     position: absolute;
     display: none;
 }
+
+.tags {
+  position: absolute;
+  top: 130px;
+  left: 800px;
+  width: 75px;
+  height: 45px;
+  padding: 6px;
+}
+
+.tags p {
+  margin: 3px;
+  font-size: small;
+}
+
+.tags .core {
+display: block;
+background: red;
+width: 8px;
+height: 8px;
+float: left;
+margin: 3px;
+}
+
+.tags .border {
+display: block;
+background: blue;
+width: 8px;
+height: 8px;
+float: left;
+margin: 3px;
+}
+
+.tags .noise {
+display: block;
+background: black;
+width: 8px;
+height: 8px;
+float: left;
+margin: 3px;
+}
